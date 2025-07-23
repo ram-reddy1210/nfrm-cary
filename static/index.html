@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scripture Sage Admin Chat Agent</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #chat-container {
+            width: 80%;
+            max-width: 800px;
+            height: 90vh;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f7f7f7;
+        }
+        #chat-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        #chat-header p {
+            margin: 5px 0;
+            color: #555;
+        }
+        #chat-header ul {
+            padding-left: 20px;
+            margin: 10px 0 0 0;
+            color: #555;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 75%;
+            line-height: 1.5;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .agent-message {
+            background-color: #e9e9eb;
+            color: #333;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            white-space: pre-wrap; /* Respects newlines and spaces from the AI response */
+            word-wrap: break-word; /* Ensures long text without spaces wraps correctly */
+        }
+        .agent-message pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+        }
+        .typing-indicator {
+            align-self: flex-start;
+            color: #888;
+            font-style: italic;
+        }
+        #chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        #chat-form {
+            display: flex;
+        }
+        #message-input {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        #chat-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+        #chat-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-header">
+            <h1>Scripture Sage Admin Chat Agent</h1>
+            <p>Welcome! Ask me anything in natural language about the API logs. I can help you query, count, and analyze the data from the 'api_logs' collection.</p>
+            <p><b>Example questions:</b></p>
+            <ul>
+                <li>How many calls were made to the astrology_chat API today?</li>
+                <li>Show me the latest 5 logs for the user 'test@example.com'.</li>
+                <li>What is the breakdown of API calls by api_name?</li>
+                <li>List all unique user emails.</li>
+            </ul>
+        </div>
+        <div id="chat-messages"></div>
+        <div id="chat-input-container">
+            <form id="chat-form">
+                <input type="text" id="message-input" placeholder="Type your question here..." autocomplete="off">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        const chatForm = document.getElementById('chat-form');
+        const messageInput = document.getElementById('message-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = messageInput.value.trim();
+            if (!userMessage) return;
+
+            addMessageToChat('user', userMessage);
+            messageInput.value = '';
+            showTypingIndicator();
+
+            try {
+                const response = await fetch('/api/v1/admin/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: userMessage,
+                        user_name: 'AdminUIUser', // Hardcoded for simplicity
+                        user_email: 'adminui@example.com' // Hardcoded for simplicity
+                    }),
+                });
+
+                removeTypingIndicator();
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown server error' }));
+                    throw new Error(`API Error: ${response.status} ${response.statusText}. ${errorData.detail || ''}`);
+                }
+
+                const data = await response.json();
+                addMessageToChat('agent', data.response);
+
+            } catch (error) {
+                removeTypingIndicator();
+                console.error('Error sending message:', error);
+                addMessageToChat('agent', `Sorry, something went wrong: ${error.message}`);
+            }
+        });
+
+        function addMessageToChat(sender, message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'agent-message');
+            
+            if (sender === 'agent' && (message.trim().startsWith('{') || message.trim().startsWith('['))) {
+                try {
+                    const jsonObj = JSON.parse(message);
+                    const prettyJson = JSON.stringify(jsonObj, null, 2);
+                    const preElement = document.createElement('pre');
+                    preElement.textContent = prettyJson;
+                    messageElement.appendChild(preElement);
+                } catch (e) {
+                    messageElement.textContent = message;
+                }
+            } else if (sender === 'agent') {
+                // Handle markdown for bold and red text.
+                // This splits the message by the bold tags, keeping the tags themselves.
+                const parts = message.split(/(\*\*.*?\*\*)/);
+                
+                parts.forEach(part => {
+                    // If the part is a markdown bold tag
+                    if (part.startsWith('**') && part.endsWith('**')) {
+                        const strongElement = document.createElement('strong');
+                        strongElement.style.color = 'red';
+                        // Get the text between the asterisks
+                        strongElement.textContent = part.slice(2, -2);
+                        messageElement.appendChild(strongElement);
+                    } else if (part) { // Avoid appending empty text nodes
+                        messageElement.appendChild(document.createTextNode(part));
+                    }
+                });
+            } else {
+                // For user messages
+                messageElement.textContent = message;
+            }
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the new message
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = 'typing-indicator';
+            typingIndicator.classList.add('message', 'typing-indicator');
+            typingIndicator.textContent = 'Agent is typing...';
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+    </script>
+</body>
+</html>
