@@ -1,0 +1,75 @@
+@startuml
+title RAG Chatbot - Data Preparation Pipeline
+
+actor "System/Operator" as Operator
+
+participant "Data Ingestion Service (S1)" as S1_Ingest
+participant "Confluence"
+participant "SharePoint"
+participant "GitHub"
+participant "JIRA"
+participant "N File System" as NFileSystem
+database "Cloud Storage (Bucket-1: Raw Data)" as Bucket1
+
+participant "Embedding Service (S2)" as S2_Embed
+database "Cloud Storage (Bucket-2: Embeddings)" as Bucket2
+
+participant "Indexing Service (S3)" as S3_Index
+database "Vector Index" as VectorDB
+
+participant "Index Endpoint Service (S4)" as S4_Endpoint
+participant "Search Endpoint" as SearchEndpoint
+
+Operator -> S1_Ingest : Start Data Ingestion
+activate S1_Ingest
+S1_Ingest -> Confluence : Extract Data
+Confluence --> S1_Ingest : Data
+S1_Ingest -> Bucket1 : Store Raw Data from Confluence
+
+S1_Ingest -> SharePoint : Extract Data
+SharePoint --> S1_Ingest : Data
+S1_Ingest -> Bucket1 : Store Raw Data from SharePoint
+
+S1_Ingest -> GitHub : Extract Data
+GitHub --> S1_Ingest : Data
+S1_Ingest -> Bucket1 : Store Raw Data from GitHub
+
+S1_Ingest -> JIRA : Extract Data
+JIRA --> S1_Ingest : Data
+S1_Ingest -> Bucket1 : Store Raw Data from JIRA
+
+S1_Ingest -> NFileSystem : Extract Data
+NFileSystem --> S1_Ingest : Data
+S1_Ingest -> Bucket1 : Store Raw Data from N File System
+deactivate S1_Ingest
+
+Operator -> S2_Embed : Start Embedding Generation
+activate S2_Embed
+S2_Embed -> Bucket1 : Read Raw Data
+Bucket1 --> S2_Embed : Raw Data
+S2_Embed -> S2_Embed : Generate Embeddings
+S2_Embed -> Bucket2 : Store Embeddings
+deactivate S2_Embed
+
+Operator -> S3_Index : Start Index Creation
+activate S3_Index
+S3_Index -> Bucket2 : Read Embeddings
+Bucket2 --> S3_Index : Embeddings
+S3_Index -> VectorDB : Create/Update Index
+activate VectorDB
+VectorDB --> S3_Index : Index Ready
+deactivate VectorDB
+deactivate S3_Index
+
+Operator -> S4_Endpoint : Create Index Endpoint
+activate S4_Endpoint
+S4_Endpoint -> VectorDB : Reference Index
+S4_Endpoint -> SearchEndpoint : Deploy/Configure Endpoint
+activate SearchEndpoint
+SearchEndpoint --> S4_Endpoint : Endpoint Active
+deactivate SearchEndpoint
+deactivate S4_Endpoint
+
+note right of SearchEndpoint : This endpoint is the connection point\nfor the Data Retrieval Service.
+
+@enduml

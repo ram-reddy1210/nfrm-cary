@@ -1,0 +1,39 @@
+@startuml
+title RAG Chatbot - Data Retrieval Flow
+
+actor "User"
+participant "Chatbot Application" as App
+participant "Data Retrieval Service (S_Ret)" as S_Ret
+participant "Search Endpoint" as SearchEndpoint
+database "Vector Index" as VectorDB
+participant "LLM"
+
+User -> App : Submit Prompt
+activate App
+App -> S_Ret : Process User Prompt
+activate S_Ret
+
+S_Ret -> S_Ret : 1. Convert Prompt to Embeddings
+note right: Query Embedding
+
+S_Ret -> SearchEndpoint : 2. Find Neighbors (Query Embedding)
+activate SearchEndpoint
+note left of SearchEndpoint : Connects to Data Preparation\nvia this endpoint.
+SearchEndpoint -> VectorDB : Search for Similar Vectors
+activate VectorDB
+VectorDB --> SearchEndpoint : Relevant Document Chunks
+deactivate VectorDB
+SearchEndpoint --> S_Ret : Retrieved Context
+deactivate SearchEndpoint
+
+S_Ret -> LLM : Augment Prompt with Context & Generate Response
+activate LLM
+LLM --> S_Ret : Generated Response
+deactivate LLM
+
+S_Ret --> App : Response
+deactivate S_Ret
+App --> User : Display Response
+deactivate App
+
+@enduml

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "988284952137",
+    "project_id": "ai-agents-auth",
+    "storage_bucket": "ai-agents-auth.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988284952137:android:ca34788c164d7d7a36a998",
+        "android_client_info": {
+          "package_name": "com.example.ai_agents_ui"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "988284952137-2djeneuc59v14u2atr4prjpoe9espcd2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyBfNxiK8CAJy5QZzJAFPljMRTUFN4Q48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "988284952137-2djeneuc59v14u2atr4prjpoe9espcd2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "988284952137-n7dr7qc6ds1sapvg2gv36aa0vklkid14.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.aiAgentsUi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,66 @@
+name: ai_agents_ui
+description: "A UI for AI Agents, deployable on Web, Android, and iOS."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.3.0 <4.0.0' # Adjust based on your Flutter version
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  http: ^1.2.0
+  flutter_tts: ^3.8.5
+  uuid: ^4.3.3
+  pdf: ^3.10.8
+  path_provider: ^2.1.2
+  #open_file_plus: ^3.4.1
+  open_file: ^3.3.2
+  #firebase_core: ^2.31.0
+  #firebase_auth: ^4.17.7
+  #google_sign_in: ^6.2.1   
+  #firebase_core: ^2.24.2
+  #firebase_auth: ^4.12.0
+  #google_sign_in: ^6.1.6
+  #firebase_core: ^2.31.0
+  #firebase_auth: ^4.19.5
+  #google_sign_in: ^6.2.1
+  firebase_core: ^3.14.0
+  firebase_auth: ^5.6.0
+  #google_sign_in: ^7.1.0
+  google_sign_in: ^6.3.0
+  provider: ^6.1.2
+  intl: ^0.19.0 # Or the latest version
+  #dependency_overrides:
+  #google_sign_in_ios: ^5.4.4   # ✅ OVERRIDE ONLY HERE (don't add to main dependencies)
+  youtube_player_flutter: ^9.0.0
+
+
+ 
+
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/veda.png
+    - assets/images/horoscope.jpg
+    - assets/images/indian-remedies.jpeg
+    - assets/images/numerology.png
+    - assets/images/logo.jpeg
+    - assets/images/logo.png
+    - assets/images/google_logo.jpeg
+    - assets/images/mantra.jpg
+    - assets/images/Welcome.jpeg
+    - assets/images/logo-mascot.png
+    - assets/images/FinAd1.jpeg
+    - assets/images/FinEdu1.jpeg
+    - assets/images/FundF1.jpeg

@@ -1,0 +1,19 @@
+@startuml
+!theme vibrant
+
+package "Web Application" {
+  [Frontend] <<component>>
+  [Backend API] <<component>>
+}
+
+package "Database" {
+  [User Database] <<database>>
+  [Product Database] <<database>>
+}
+
+[Frontend] --> [Backend API] : HTTP/HTTPS
+[Backend API] --> [User Database] : Reads/Writes
+[Backend API] --> [Product Database] : Reads/Writes
+
+@enduml
+

@@ -1,0 +1,41 @@
+@startuml
+title Component Deployment Diagram - RAG Chatbot
+
+!theme vibrant
+
+package "User Devices" {
+  node "IOS/Android Device" as UserDevice {
+    component "ChatUI (Flutter)" as ChatUI
+  }
+}
+
+package "Google Cloud Platform" {
+  node "Google CloudRun" as CloudRun {
+    component "Ai-agent-backend-Services (FastAPI)" as AgentBackend
+    component "Data Retrieval Services (FastAPI)" as RetrievalService
+  }
+
+  package "Vertex AI" {
+    database "VertexAI Index" as VertexIndex
+    artifact "VertexAI Endpoint" as VertexEndpoint
+  }
+}
+
+ChatUI --> AgentBackend : HTTPS/gRPC
+
+AgentBackend --> VertexEndpoint : API Calls
+AgentBackend --> VertexIndex : (via Endpoint or directly for management)
+
+RetrievalService --> VertexEndpoint : API Calls (for search)
+
+' It's implied AgentBackend might use RetrievalService,
+' or RetrievalService is part of the overall "backend services"
+' For clarity, if AgentBackend directly uses RetrievalService:
+AgentBackend --> RetrievalService : Internal API Call
+
+note right of VertexEndpoint
+  VertexAI Endpoints serve
+  the indexed data from VertexAI Index.
+end note
+
+@enduml
