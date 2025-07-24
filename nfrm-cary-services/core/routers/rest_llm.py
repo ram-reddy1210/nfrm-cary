@@ -43,43 +43,6 @@ async def generate_ai_response(details: GenerateAIResponseRequest, request: Requ
     ai_response_content = llm_services.generate_ai_response(details.prompt)
     return {"response": ai_response_content}
 
-def get_financial_advice_chat(user_question: str) -> str:
-    """
-    Gets financial advice from the AI in a chat session.
-    Uses the persistent chat session from llm_services.
-
-    Args:
-        user_question: The financial question from the user.
-
-    Returns:
-        The AI's financial advice, or an error message.
-    """
-    system_prompt = """You are a comprehensive and expert financial advisor AI. Your goal is to provide clear, practical, and responsible financial guidance. You are equipped to handle a wide range of financial topics.
-
-You must be able to answer questions related to:
-- **Personal Finance:** Budgeting, saving, debt management (credit cards, loans), retirement planning (401k, IRA), and building an emergency fund.
-- **Investing:** Stock market basics, mutual funds, ETFs, bonds, real estate, and risk tolerance assessment. Explain concepts clearly and provide general information, but do NOT give personalized investment advice to buy or sell specific securities.
-- **Small Business:** Guidance on starting a business, creating a business plan, managing cash flow, understanding funding options, and basic accounting principles.
-- **Finding Investors:** Strategies for seeking seed funding, venture capital, angel investors, and preparing a pitch deck.
-
-**Your Persona:**
-- **Knowledgeable & Clear:** Break down complex topics into easy-to-understand language.
-- **Prudent & Responsible:** Always include a disclaimer that you are an AI assistant and that users should consult with a qualified human financial professional for personalized advice before making any financial decisions.
-- **Supportive & Unbiased:** Provide balanced information about different financial strategies and products.
-- **Conversational:** Engage with the user in a helpful and approachable manner. Do not refer to yourself as a language model. Act as a human advisor.
-
-Remember to maintain the context of the conversation if it's an ongoing chat.
-"""
-    
-    prompt_payload = f"{system_prompt}\n\nUser's question: \"{user_question}\"\n\nYour financial advice:"
-    
-    try:
-        advice_text = llm_services.chat_with_ai(prompt_payload)
-        return advice_text
-    except Exception as e:
-        print(f"Error in get_financial_advice_chat: {e}")
-        return f"An error occurred during financial advice generation: {e}"
-
 class AdviseChatRequest(BaseModel):
     prompt: str
     user_name: str
@@ -101,7 +64,36 @@ async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
         request_data=details.model_dump()
     )
 
-    ai_response_content = get_financial_advice_chat(details.prompt)
+    # The business logic is now in the service layer.
+    ai_response_content = financial_advice_service.get_financial_advice_chat(details.prompt)
+    return {"response": ai_response_content}
+
+
+class ReviewDocumentRequest(BaseModel):
+    document_content: str
+    prompt: str
+    user_name: str
+    user_email: str
+
+@router.post('/v1/ai-agents/review_document_chat', tags=["Financial Advice"])
+async def document_reviewer_chat(details: ReviewDocumentRequest, request: Request):
+    """
+    Endpoint for chat-based financial document review.
+    User provides document content and a prompt for analysis.
+    """
+    user_details = {
+        "client_host": request.client.host if request.client else "unknown",
+        "user_name": details.user_name,
+        "user_email": details.user_email
+    }
+    await firestore_service.log_api_call(
+        api_name="document_reviewer_chat",
+        prompt=details.prompt,
+        user_details=user_details,
+        request_data=details.model_dump()
+    )
+
+    ai_response_content = financial_advice_service.get_document_review_chat(document_content=details.document_content, user_question=details.prompt)
     return {"response": ai_response_content}
 
 
