@@ -4,7 +4,8 @@ from typing import Optional, List, Dict, Any
 
 # typing.Annotated was imported but not used.
 # Import the llm_services module to avoid naming conflicts and allow proper calling.
-from core.services import llm_services, firestore_service, admin_chat_agent_service
+from core.services import llm_services, firestore_service, admin_chat_agent_service, financial_advice_service
+from core.services.financial_advice_service import QuestionType
 
 router = APIRouter(prefix="/api")
 
@@ -84,7 +85,7 @@ class AdviseChatRequest(BaseModel):
     user_name: str
     user_email: str
 
-@router.post('/v1/ai-agents/advise_chat')
+@router.post('/v1/ai-agents/advise_chat', tags=["Financial Advice"])
 async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
     """Endpoint for chat-based financial advice."""
     # Log the API call to Firestore
@@ -102,6 +103,21 @@ async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
 
     ai_response_content = get_financial_advice_chat(details.prompt)
     return {"response": ai_response_content}
+
+
+@router.get("/v1/ai-agents/popular-financial-questions", response_model=List[str], tags=["Financial Advice"])
+async def get_popular_financial_questions(
+    type: QuestionType = Query(..., description="The type of financial questions to retrieve. Either 'Personal' or 'Business'."),
+    count: int = Query(5, description="The number of questions to return.", ge=1, le=20)
+):
+    """
+    Retrieves a list of popular financial questions.
+
+    This endpoint provides a list of common questions that users can ask the financial advisor agent.
+    This helps guide users on the capabilities of the service.
+    """
+    questions = financial_advice_service.get_popular_questions(question_type=type, count=count)
+    return questions
 
 
 @router.get("/v1/admin/api-logs", response_model=List[Dict[str, Any]], tags=["Admin"])
