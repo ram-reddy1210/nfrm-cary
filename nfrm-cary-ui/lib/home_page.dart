@@ -97,9 +97,15 @@ class _HomePageState extends State<HomePage> {
   final Map<String, String> _apiLanguageToTtsCode = {
     'English': 'en-US',
     'Hindi': 'hi-IN',
+    'Spanish': 'es-ES',
   };
   // Limiting response language options to English and Hindi for Numerology and Mantra tabs
   final List<String> _selectableApiLanguages = ['English', 'Hindi']; // Sanskrit removed
+  // State for Advisor Language
+  final List<String> _advisorSelectableLanguages = ['English', 'Hindi', 'Spanish'];
+  late String _selectedAdvisorLanguage;
+  String _advisorSubmittedLanguage = 'English'; // Default for session
+  String _currentAdvisorSessionTtsCode = 'en-US'; // Default TTS code for Advisor
 
   // TTS State
   bool _isSpeaking = false;
@@ -130,6 +136,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _selectedAdvisorLanguage = _advisorSelectableLanguages[0]; // Default to English for Advisor
     _initTts();
     _selectedNumerologyApiLanguage = _selectableApiLanguages[0]; // Default to English
     _horoscopeIncludeTodaysFortune = false; // Initialize checkbox state
@@ -328,6 +335,11 @@ class _HomePageState extends State<HomePage> {
         _isLoading = true;
         _errorMessage = '';
         _textController.clear();
+        // On the first message, lock in the language for the session
+        if (_chatMessages.length == 1) {
+          _advisorSubmittedLanguage = _selectedAdvisorLanguage;
+          _currentAdvisorSessionTtsCode = _apiLanguageToTtsCode[_selectedAdvisorLanguage] ?? 'en-US';
+        }
         _isAdvisorImageSmall = true; // Shrink image on first message
       });
       _scrollToBottom(_chatScrollController);
@@ -353,7 +365,13 @@ class _HomePageState extends State<HomePage> {
             'accept': 'application/json',
             'Content-Type': 'application/json',
           },
-          body: jsonEncode({'prompt': textInput, 'user_name': loggedInUserName, 'user_email': loggedInUserEmail, 'history': history}),
+          body: jsonEncode({
+            'prompt': textInput,
+            'user_name': loggedInUserName,
+            'user_email': loggedInUserEmail,
+            'history': history,
+            'language': _advisorSubmittedLanguage, // Pass the submitted language
+          }),
         );
 
         ChatMessage? aiMessage;
@@ -1088,6 +1106,7 @@ class _HomePageState extends State<HomePage> {
       _isLoading = false;
       _errorMessage = '';
       _isAdvisorImageSmall = false; // This will bring back the initial view
+      _selectedAdvisorLanguage = _advisorSelectableLanguages[0]; // Reset dropdown
       _textController.clear();
     });
     _flutterTts.stop();
@@ -1308,6 +1327,29 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
+                    if (_chatMessages.isEmpty) // Only show before chat starts
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: 'Response Language',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                            filled: true,
+                            fillColor: Colors.white,
+                          ),
+                          value: _selectedAdvisorLanguage,
+                          items: _advisorSelectableLanguages.map((String value) {
+                            return DropdownMenuItem<String>(value: value, child: Text(value));
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() => _selectedAdvisorLanguage = newValue);
+                            }
+                          },
+                          dropdownColor: Colors.white, // Explicitly set dropdown background
+                        ),
+                      ),
                     TextField( // Changed to a multi-line TextField (Text Area)
                       controller: _textController,
                       focusNode: textFieldFocusNode,
@@ -1391,7 +1433,13 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('FinAdvisor Session', style: Theme.of(context).textTheme.titleSmall),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('FinAdvisor Session', style: Theme.of(context).textTheme.titleSmall),
+                                        Text('Language: $_advisorSubmittedLanguage', style: Theme.of(context).textTheme.bodySmall),
+                                      ],
+                                    ),
                                     PopupMenuButton<String>(
                                       icon: const Icon(Icons.more_vert),
                                       onSelected: (String result) {
@@ -1417,7 +1465,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                                   itemCount: _chatMessages.length,
                                   itemBuilder: (context, index) { 
                                     final message = _chatMessages[index];
-                                    return _buildChatMessageBubble(message, "en-US"); // Advisor defaults to English
+                                    return _buildChatMessageBubble(message, _currentAdvisorSessionTtsCode);
                                   },
                                 ),
                         ),
