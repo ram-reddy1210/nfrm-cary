@@ -51,18 +51,21 @@ def get_popular_questions(question_type: QuestionType, count: int) -> List[str]:
     return []
 
 
-def get_financial_advice_chat(user_question: str) -> str:
+def get_financial_advice_chat(user_question: str, language: str = "English") -> str:
     """
     Gets financial advice from the AI in a chat session.
     This function is moved from the router to the service layer for better code organization.
 
     Args:
         user_question: The financial question from the user.
+        language: The language for the AI's response.
 
     Returns:
         The AI's financial advice, or an error message.
     """
-    system_prompt = """You are a comprehensive and expert financial advisor AI. Your goal is to provide clear, practical, and responsible financial guidance. You are equipped to handle a wide range of financial topics.
+    system_prompt = f"""You are a comprehensive and expert financial advisor AI. Your goal is to provide clear, practical, and responsible financial guidance. You are equipped to handle a wide range of financial topics.
+
+**IMPORTANT: You MUST provide your entire response in the following language: {language}.**
 
 You must be able to answer questions related to:
 - **Personal Finance:** Budgeting, saving, debt management (credit cards, loans), retirement planning (401k, IRA), and building an emergency fund.

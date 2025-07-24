@@ -47,6 +47,7 @@ class AdviseChatRequest(BaseModel):
     prompt: str
     user_name: str
     user_email: str
+    language: Optional[str] = "English"
 
 @router.post('/v1/ai-agents/advise_chat', tags=["Financial Advice"])
 async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
@@ -65,7 +66,10 @@ async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
     )
 
     # The business logic is now in the service layer.
-    ai_response_content = financial_advice_service.get_financial_advice_chat(details.prompt)
+    ai_response_content = financial_advice_service.get_financial_advice_chat(
+        user_question=details.prompt,
+        language=details.language
+    )
     return {"response": ai_response_content}
 
 
