@@ -36,6 +36,9 @@ dependencies:
   #dependency_overrides:
   #google_sign_in_ios: ^5.4.4   # ✅ OVERRIDE ONLY HERE (don't add to main dependencies)
   youtube_player_flutter: ^9.0.0
+  file_picker: ^6.2.0
+  syncfusion_flutter_pdf: ^25.2.3
+
 
 
  

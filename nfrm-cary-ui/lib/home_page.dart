@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import 'package:ai_agents_ui/providers/user_provider.dart';
 import 'package:ai_agents_ui/services/auth_service.dart';
 import 'package:ai_agents_ui/utils/date_input_formatter.dart'; // Import the custom formatter
+import 'package:ai_agents_ui/exp_review_page.dart';
 
 var uuid = Uuid();
 
@@ -1724,201 +1725,9 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
         ),
       ),
       // --- Numerology Page ---
-      SafeArea(
-        child: Column(
-          children: <Widget>[
-            if (!_numerologyDetailsSubmitted)
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20.0),
-                        child: Center(
-                          child: Column( // Column to hold image and text
-                            crossAxisAlignment: CrossAxisAlignment.center, // Center content within this column
-                            children: [
-                              SizedBox(
-                                height: 125.0, // Consistent height with Advisor tab
-                                child: Image.asset(
-                                  'assets/images/FundF1.jpeg', // Updated image
-                                  fit: BoxFit.contain,
-                                  color: screenBackgroundColor, // Page background color
-                                  colorBlendMode: BlendMode.multiply, // Blend mode
-                                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 50),
-                                ),
-                              ),
-                              const SizedBox(height: 10), // Spacing similar to other tabs
-                              Text(
-                                'Find Investors for \n your business ...', // New text
-                                textAlign: TextAlign.left, // Consistent text alignment
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  height: 1.0,
-                                  letterSpacing: 0.0,
-                                  color: Colors.brown[800], // Consistent text color
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start, // Align button and fields to the left
-                          children: [ // Added filled: true and fillColor: Colors.white to all TextFields and Dropdowns
-                            TextField(controller: _numerologyPersonNameController, decoration: const InputDecoration(labelText: 'Person Name', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), filled: true, fillColor: Colors.white)),
-                            const SizedBox(height: 12),
-                            TextFormField(
-                              controller: _numerologyDobController,
-                              decoration: const InputDecoration(
-                                labelText: 'Date of Birth (DD/MM/YYYY)',
-                                border: OutlineInputBorder(),
-                                filled: true, // Added
-                                fillColor: Colors.white, // Added
-                                contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-                                suffixIcon: Icon(Icons.calendar_today), // Added icon
-                              ),
-                              inputFormatters: [DateInputFormatter()], // Add this line
-                              // readOnly: true, // Allow manual input
-                              onTap: () => _selectDate(context, _numerologyDobController), // Open picker on tap
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter a date of birth.';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(labelText: 'Investors type', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), filled: true, fillColor: Colors.white),
-                              value: _selectedNumerologySystem,
-                              items: _numerologySystemChoices.map((String value) {
-                                return DropdownMenuItem<String>(value: value, child: Text(value));
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedNumerologySystem = newValue);
-                                }
-                              },
-                              dropdownColor: Colors.white, // Explicitly set dropdown background
-                            ),
-                            const SizedBox(height: 12),
-                            DropdownButtonFormField<String>(
-                              decoration: const InputDecoration(labelText: 'Response Language', border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), filled: true, fillColor: Colors.white),
-                              value: _selectedNumerologyApiLanguage,
-                              items: _selectableApiLanguages.map((String value) {
-                                return DropdownMenuItem<String>(value: value, child: Text(value));
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  setState(() => _selectedNumerologyApiLanguage = newValue);
-                                }
-                              },
-                              dropdownColor: Colors.white, // Explicitly set dropdown background
-                            ),
-                            const SizedBox(height: 20),
-                            ElevatedButton(
-                              onPressed: _numerologyIsLoading ? null : _initiateNumerologyChat,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: buttonColor,
-                              ),
-                              child: const Text('Start Raise Fund Session', style: TextStyle(color: Colors.white)),
-                            ), // Close ElevatedButton and add comma for list item
-                            if (_numerologyIsLoading)
-                              const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: CircularProgressIndicator()), // Add comma for list item
-                            if (_numerologyErrorMessage.isNotEmpty) Padding(padding: const EdgeInsets.all(8.0), child: Text(_numerologyErrorMessage, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Card(
-                        elevation: 2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Numerology For:', style: Theme.of(context).textTheme.titleSmall),
-                                  PopupMenuButton<String>(
-                                    icon: const Icon(Icons.more_vert),
-                                    onSelected: (String result) {
-                                      if (result == 'restart') {
-                                        _restartNumerologySession();
-                                      } else if (result == 'download_pdf') {
-                                        _generateNumerologyPdf();
-                                      }
-                                    },
-                                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                      const PopupMenuItem<String>(
-                                        value: 'restart',
-                                        child: Text('Restart Session'),
-                                      ),
-                                      PopupMenuItem<String>(
-                                        value: 'download_pdf',
-                                        enabled: !_isGeneratingNumerologyPdf && _numerologyChatMessages.isNotEmpty,
-                                        child: Text(_isGeneratingNumerologyPdf ? 'Generating...' : 'Download Chat PDF'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text('Name: $_numerologySubmittedPersonName', style: Theme.of(context).textTheme.bodyMedium),
-                              Text('DOB: $_numerologySubmittedDob', style: Theme.of(context).textTheme.bodyMedium),
-                              Text('System: $_numerologySubmittedSystem', style: Theme.of(context).textTheme.bodyMedium),
-                              Text('Language: $_selectedNumerologyApiLanguage', style: Theme.of(context).textTheme.bodyMedium),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: _numerologyChatMessages.isEmpty && !_numerologyIsLoading && _numerologyErrorMessage.isEmpty
-                          ? Center(child: Text('Ask about your numerology...', style: TextStyle(fontSize: 16, color: Colors.grey), textAlign: TextAlign.center))
-                          : ListView.builder(
-                              controller: _numerologyChatScrollController,
-                              padding: const EdgeInsets.all(8.0),
-                              itemCount: _numerologyChatMessages.length,
-                              itemBuilder: (context, index) {
-                                final message = _numerologyChatMessages[index];
-                                return _buildChatMessageBubble(message, _currentNumerologySessionTtsCode);
-                              },
-                            ),
-                    ),
-                    if (_numerologyIsLoading) const Padding(padding: EdgeInsets.symmetric(vertical: 8.0), child: CircularProgressIndicator()),
-                    if (_numerologyErrorMessage.isNotEmpty && !_numerologyIsLoading) Padding(padding: const EdgeInsets.all(8.0), child: Text(_numerologyErrorMessage, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center)),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(children: <Widget>[ // Added filled: true and fillColor: Colors.white
-                        Expanded(child: TextField(controller: _numerologyChatInputController, decoration: InputDecoration(hintText: 'Ask a follow-up question...', border: OutlineInputBorder(borderRadius: BorderRadius.circular(25.0)), contentPadding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), filled: true, fillColor: Colors.white), onSubmitted: (value) { if (value.isNotEmpty) _sendNumerologyApiRequest(value); })),
-                        IconButton(icon: const Icon(Icons.send), onPressed: () { final text = _numerologyChatInputController.text; if (text.isNotEmpty) _sendNumerologyApiRequest(text); })]),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-      // --- Mantra Page ---
       
+      // --- Mantra Page ---
+      const ExpReviewPage(),
     ];
     return Scaffold(
       backgroundColor: screenBackgroundColor, // Added background color
@@ -1990,9 +1799,9 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
             icon: Icon(Icons.nightlight_round), // Example icon for Horoscope
             label: 'Budgeting',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.looks_one_outlined), // Example icon for Numerology
-            label: 'RaiseFund',
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long), // Icon for ExpReview
+            label: 'ExpReview',
           ),
           
         ],
