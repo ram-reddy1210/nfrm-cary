@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:ai_agents_ui/providers/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -23,17 +24,52 @@ class BudgetPage extends StatefulWidget {
 }
 
 class _BudgetPageState extends State<BudgetPage> {
+  final FlutterTts _flutterTts = FlutterTts();
   final List<ChatMessage> _chatMessages = [];
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   String? _errorMessage;
   bool _sessionStarted = false;
+  bool _isSpeaking = false;
+  String _currentlySpeakingTextId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  void _initTts() {
+    _flutterTts.setStartHandler(() {
+      if (mounted) setState(() => _isSpeaking = true);
+    });
+
+    _flutterTts.setCompletionHandler(() {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = false;
+          _currentlySpeakingTextId = '';
+        });
+      }
+    });
+
+    _flutterTts.setErrorHandler((msg) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = "TTS Error: $msg";
+          _isSpeaking = false;
+          _currentlySpeakingTextId = '';
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
     _textController.dispose();
     _scrollController.dispose();
+    _flutterTts.stop();
     super.dispose();
   }
 
@@ -51,6 +87,8 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Future<void> _sendMessage(String text) async {
     if (text.isEmpty) return;
+
+    await _flutterTts.stop();
 
     // For the very first message, we don't add a user message bubble
     // because it's the automatic "start budget planning session" message.
@@ -124,6 +162,7 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   Future<void> _startBudgetSession() async {
+    await _flutterTts.stop();
     setState(() {
       _sessionStarted = true;
       _chatMessages.clear();
@@ -134,6 +173,7 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   void _restartSession() {
+    _flutterTts.stop();
     setState(() {
       _sessionStarted = false;
       _chatMessages.clear();
@@ -141,6 +181,27 @@ class _BudgetPageState extends State<BudgetPage> {
       _textController.clear();
       _isLoading = false;
     });
+  }
+
+  Future<void> _speakBudgetMessage(ChatMessage message) async {
+    if (message.text.isEmpty) return;
+
+    // The budgeting feature seems to be in English, so we can hardcode the language.
+    const languageCode = 'en-US';
+
+    if (_isSpeaking && _currentlySpeakingTextId == message.id) {
+      await _flutterTts.stop();
+    } else {
+      await _flutterTts.stop(); // Stop any previous speech
+      if (mounted) {
+        setState(() {
+          _currentlySpeakingTextId = message.id;
+        });
+      }
+      await _flutterTts.setLanguage(languageCode);
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.speak(message.text);
+    }
   }
 
   @override
@@ -253,7 +314,28 @@ class _BudgetPageState extends State<BudgetPage> {
           color: isUser ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.grey[200],
           borderRadius: BorderRadius.circular(12.0),
         ),
-        child: Text(message.text),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(message.text),
+            ),
+            if (!isUser) // Show TTS button only for AI messages
+              IconButton(
+                icon: Icon(
+                  _isSpeaking && _currentlySpeakingTextId == message.id
+                      ? Icons.stop_circle_outlined
+                      : Icons.volume_up_outlined,
+                ),
+                onPressed: () => _speakBudgetMessage(message),
+                tooltip: _isSpeaking && _currentlySpeakingTextId == message.id ? 'Stop' : 'Read aloud',
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
       ),
     );
   }
