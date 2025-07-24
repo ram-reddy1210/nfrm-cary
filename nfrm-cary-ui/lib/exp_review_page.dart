@@ -3,19 +3,25 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ai_agents_ui/providers/user_provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb; // Keep this import
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
+
+var uuid = Uuid();
 
 class ChatMessage {
+  final String id;
   final String text;
   final bool isUserMessage;
-  ChatMessage({required this.text, required this.isUserMessage});
+  ChatMessage({required this.text, required this.isUserMessage})
+      : id = uuid.v4();
 }
 
 class ExpReviewPage extends StatefulWidget {
@@ -26,6 +32,7 @@ class ExpReviewPage extends StatefulWidget {
 }
 
 class _ExpReviewPageState extends State<ExpReviewPage> {
+  final FlutterTts _flutterTts = FlutterTts();
   String? _fileName;
   String? _fileContent;
   Uint8List? _imageBytes;
@@ -38,8 +45,42 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
   final List<ChatMessage> _chatMessages = [];
   final TextEditingController _followUpController = TextEditingController();
   final ScrollController _chatScrollController = ScrollController();
+  bool _isSpeaking = false;
+  String _currentlySpeakingTextId = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  void _initTts() {
+    _flutterTts.setStartHandler(() {
+      if (mounted) setState(() => _isSpeaking = true);
+    });
+
+    _flutterTts.setCompletionHandler(() {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = false;
+          _currentlySpeakingTextId = '';
+        });
+      }
+    });
+
+    _flutterTts.setErrorHandler((msg) {
+      if (mounted) {
+        setState(() {
+          _analysisError = "TTS Error: $msg";
+          _isSpeaking = false;
+          _currentlySpeakingTextId = '';
+        });
+      }
+    });
+  }
 
   void _resetAnalysisState() {
+    _flutterTts.stop();
     setState(() {
       _analysisComplete = false;
       _chatMessages.clear();
@@ -55,6 +96,8 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
       );
       return;
     }
+
+    await _flutterTts.stop();
 
     setState(() {
       _isAnalysing = true;
@@ -114,6 +157,8 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
   Future<void> _sendFollowUp(String prompt) async {
     if (prompt.isEmpty || _fileContent == null) return;
 
+    await _flutterTts.stop();
+
     setState(() {
       _chatMessages.add(ChatMessage(text: prompt, isUserMessage: true));
       _isAnalysing = true;
@@ -172,6 +217,7 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
   }
 
   void _restartSession() {
+    _flutterTts.stop();
     setState(() {
       _fileName = null;
       _fileContent = null;
@@ -181,6 +227,26 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
       _analysisError = null;
       _followUpController.clear();
     });
+  }
+
+  Future<void> _speakChatMessage(ChatMessage message) async {
+    if (message.text.isEmpty) return;
+
+    const languageCode = 'en-US';
+
+    if (_isSpeaking && _currentlySpeakingTextId == message.id) {
+      await _flutterTts.stop();
+    } else {
+      await _flutterTts.stop(); // Stop any previous speech
+      if (mounted) {
+        setState(() {
+          _currentlySpeakingTextId = message.id;
+        });
+      }
+      await _flutterTts.setLanguage(languageCode);
+      await _flutterTts.setPitch(1.0);
+      await _flutterTts.speak(message.text);
+    }
   }
 
   Future<void> _downloadPdf() async {
@@ -223,6 +289,7 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
   }
 
   Future<void> _pickFile() async {
+    await _flutterTts.stop();
     setState(() {
       _isLoading = true;
       _fileName = null;
@@ -317,6 +384,14 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
         );
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    _followUpController.dispose();
+    _chatScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -472,9 +547,32 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
               : Colors.grey[200],
           borderRadius: BorderRadius.circular(12.0),
         ),
-        child: Text(
-          message.text,
-          style: const TextStyle(fontSize: 16),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                message.text,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+            if (!message.isUserMessage)
+              IconButton(
+                icon: Icon(
+                  _isSpeaking && _currentlySpeakingTextId == message.id
+                      ? Icons.stop_circle_outlined
+                      : Icons.volume_up_outlined,
+                ),
+                onPressed: () => _speakChatMessage(message),
+                tooltip: _isSpeaking && _currentlySpeakingTextId == message.id
+                    ? 'Stop'
+                    : 'Read aloud',
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
         ),
       ),
     );
