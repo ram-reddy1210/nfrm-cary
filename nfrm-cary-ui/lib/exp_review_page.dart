@@ -118,19 +118,53 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
     });
     _scrollToBottom();
 
-    // This would be another call to your service with the new prompt
-    // For demonstration, we'll just echo the response structure.
-    // In a real app, you would make the same http.post call as in _analyseWithAI
-    // but with the new `prompt`.
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userName = userProvider.user?.displayName ?? 'string';
+      final userEmail = userProvider.user?.email ?? 'string';
 
-    setState(() {
-      _chatMessages.add(ChatMessage(
-          text: "This is a simulated follow-up response to: '$prompt'",
-          isUserMessage: false));
-      _isAnalysing = false;
-    });
-    _scrollToBottom();
+      final url = Uri.parse(
+          'https://nfrm-cary-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/review_document_chat');
+      final response = await http.post(
+        url,
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          "document_content": _fileContent,
+          "prompt": prompt,
+          "user_name": userName,
+          "user_email": userEmail,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        final aiResponseText = responseBody['response'];
+
+        if (aiResponseText != null) {
+          setState(() {
+            _chatMessages
+                .add(ChatMessage(text: aiResponseText, isUserMessage: false));
+          });
+        } else {
+          throw Exception('Failed to parse AI response.');
+        }
+      } else {
+        throw Exception(
+            'Failed to get analysis. Status code: ${response.statusCode}\nBody: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        _analysisError = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isAnalysing = false;
+      });
+      _scrollToBottom();
+    }
   }
 
   Future<void> _pickFile() async {
