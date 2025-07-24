@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart'; // Added for unique message IDs
 // Imports for PDF generation
 import 'dart:io';
@@ -129,6 +130,9 @@ class _HomePageState extends State<HomePage> {
   String _currentMantraSessionTtsCode = 'en-US'; // Default TTS code for Mantra
   String? _mantraYoutubeVideoId;
   YoutubePlayerController? _mantraYoutubeController;
+
+  // State for FinBudget Page
+  List<PlatformFile> _selectedFiles = [];
   
   final ScrollController _chatScrollController = ScrollController();
   // final ScrollController _horoscopeChatScrollController = ScrollController(); // Added above
@@ -1923,19 +1927,73 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 'Financial Budget',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              SizedBox(height: 20),
-              Text(
-                'Budget tracking features coming soon...',
-                style: TextStyle(fontSize: 16),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    allowMultiple: true,
+                    type: FileType.custom,
+                    allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+                  );
+                  if (result != null) {
+                    setState(() {
+                      _selectedFiles = result.files;
+                    });
+                  }
+                },
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Upload Files'),
               ),
+              const SizedBox(height: 20),
+              if (_selectedFiles.isNotEmpty) ...[
+                const Text(
+                  'Uploaded Files:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _selectedFiles.length,
+                    itemBuilder: (context, index) {
+                      final file = _selectedFiles[index];
+                      final fileSize = (file.size / 1024).toStringAsFixed(2) + ' KB';
+                      final fileName = file.name;
+                      final fileExt = fileName.split('.').last.toLowerCase();
+                      
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        child: ListTile(
+                          leading: Icon(
+                            fileExt == 'pdf' ? Icons.picture_as_pdf : Icons.image,
+                            color: fileExt == 'pdf' ? Colors.red : Colors.blue,
+                          ),
+                          title: Text(fileName),
+                          subtitle: Text('Size: $fileSize'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              setState(() {
+                                _selectedFiles.removeAt(index);
+                              });
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ],
           ),
         ),
