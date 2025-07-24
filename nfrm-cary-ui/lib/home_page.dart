@@ -1263,7 +1263,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
 
     FocusNode textFieldFocusNode = FocusNode();
     final List<String> imageUrls = [
-      'assets/images/exp_review.png',
+      'assets/images/FinAd1.jpeg',
     ];
 
 
@@ -1287,7 +1287,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                         crossAxisCount: 1,
                         crossAxisSpacing: 20.0,
                         mainAxisSpacing: 20.0,
-                        mainAxisExtent: _isAdvisorImageSmall ? 100.0 : 200.0, // Conditional height
+                        mainAxisExtent: _isAdvisorImageSmall ? 62.5 : 125.0, // Conditional height
                       ),
                       itemCount: imageUrls.length,
                       itemBuilder: (BuildContext context, int index) {
@@ -1742,7 +1742,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
             Expanded( // Use Expanded to allow the text to take available space and push logout to the right
               child: Consumer<UserProvider>(
                 builder: (context, userProvider, child) {
-                  final userName = userProvider.user?.displayName ?? userProvider.user?.email ?? 'User';
+                  final userName = userProvider.user?.displayName ?? userProvider.user?.email ?? 'Vinay Kumar';
                   // 2. Welcome and user name in two lines, no colon, 1:3 size ratio, horizontal line
                   return Column(
                     mainAxisSize: MainAxisSize.min, // Use min space vertically
