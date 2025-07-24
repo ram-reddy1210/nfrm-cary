@@ -1263,7 +1263,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
 
     FocusNode textFieldFocusNode = FocusNode();
     final List<String> imageUrls = [
-      'assets/images/FinAd1.jpeg',
+      'assets/images/exp_review.png',
     ];
 
 
@@ -1287,7 +1287,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                         crossAxisCount: 1,
                         crossAxisSpacing: 20.0,
                         mainAxisSpacing: 20.0,
-                        mainAxisExtent: _isAdvisorImageSmall ? 62.5 : 125.0, // Conditional height
+                        mainAxisExtent: _isAdvisorImageSmall ? 100.0 : 200.0, // Conditional height
                       ),
                       itemCount: imageUrls.length,
                       itemBuilder: (BuildContext context, int index) {
