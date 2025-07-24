@@ -24,6 +24,7 @@ import 'package:ai_agents_ui/services/auth_service.dart';
 import 'package:ai_agents_ui/utils/date_input_formatter.dart'; // Import the custom formatter
 import 'package:ai_agents_ui/exp_review_page.dart';
 import 'package:ai_agents_ui/budget_page.dart';
+import 'package:ai_agents_ui/screens/budget_charts_page.dart';
 
 var uuid = Uuid();
 
@@ -1566,6 +1567,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
       
       // --- Mantra Page ---
       const ExpReviewPage(),
+      const BudgetChartsPage(),
     ];
     return Scaffold(
       backgroundColor: screenBackgroundColor, // Added background color
@@ -1640,6 +1642,10 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
           const BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long), // Icon for ExpReview
             label: 'ExpReview',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.insert_chart), // Icon for BudgetCharts
+            label: 'BudgetCharts',
           ),
           
         ],
