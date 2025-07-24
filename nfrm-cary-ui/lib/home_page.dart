@@ -1797,7 +1797,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.nightlight_round), // Example icon for Horoscope
-            label: 'Budgeting',
+            label: 'Budgeting-TBR',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long), // Icon for ExpReview
