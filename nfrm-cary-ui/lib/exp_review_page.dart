@@ -332,12 +332,22 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          Center( // Wrap SizedBox with Center to center the image
+            child: SizedBox(
+              height: 150.0, // Consistent height with exp_review tab
+              child: Image.asset(
+                'assets/images/exp_review.png',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10), // Spacing similar to exp_review tab
           const Text(
             'Upload Your Expense Report for Review',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           ElevatedButton.icon(
             onPressed: _isLoading ? null : _pickFile,
             icon: const Icon(Icons.upload_file),

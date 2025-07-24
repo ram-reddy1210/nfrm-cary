@@ -54,19 +54,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/images/veda.png
-    - assets/images/horoscope.jpg
-    - assets/images/indian-remedies.jpeg
-    - assets/images/numerology.png
-    - assets/images/logo.jpeg
-    - assets/images/logo.png
-    - assets/images/google_logo.jpeg
-    - assets/images/mantra.jpg
-    - assets/images/Welcome.jpeg
-    - assets/images/logo-mascot.png
-    - assets/images/FinAd1.jpeg
-    - assets/images/FinEdu1.jpeg
-    - assets/images/budgeting.png
-    - assets/images/FundF1.jpeg
-    - assets/images/fin_star_logo.png
-    - assets/images/exp_review.png
+    - assets/images/
