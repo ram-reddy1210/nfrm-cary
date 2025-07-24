@@ -336,17 +336,24 @@ class _HomePageState extends State<HomePage> {
       final loggedInUserName = userProvider.user?.displayName ?? userProvider.user?.email ?? 'Guest';
       final loggedInUserEmail = userProvider.user?.email ?? 'guest@example.com';
 
+      // Prepare chat history, excluding the latest user message which is the current prompt
+      final history = _chatMessages.length > 1
+          ? _chatMessages.sublist(0, _chatMessages.length - 1).map((m) {
+              return {'role': m.isUserMessage ? 'user' : 'model', 'content': m.text};
+            }).toList()
+          : [];
+
       final url = Uri.parse(
-          'https://ai-agents-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/advise'); // Changed endpoint to /advise
+          'https://nfrm-cary-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/advise_chat'); // Use the new chat endpoint
 
       try {
         final response = await http.post(
           url,
           headers: {
             'accept': 'application/json',
-            'Content-Type': 'application/json', // Removed charset=UTF-8
+            'Content-Type': 'application/json',
           },
-          body: jsonEncode({'prompt': textInput, 'user_name': loggedInUserName, 'user_email': loggedInUserEmail}), // Added prompt, user_name, user_email
+          body: jsonEncode({'prompt': textInput, 'user_name': loggedInUserName, 'user_email': loggedInUserEmail, 'history': history}),
         );
 
         ChatMessage? aiMessage;

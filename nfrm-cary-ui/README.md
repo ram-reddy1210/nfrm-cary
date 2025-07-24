@@ -129,8 +129,8 @@ flutter build web --release # or your choice of environment
 
 export PROJECT_ID="ai-agent-repo"
 export REGION="us-east1"
-export REPOSITORY_NAME="ai-agents-ui"
-export SERVICE_NAME="ai-agents-ui-app"
+export REPOSITORY_NAME="nfrm-cary-ui"
+export SERVICE_NAME="nfrm-cary-ui-app"
 export IMAGE_NAME="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY_NAME}/${SERVICE_NAME}"
 
 gcloud auth login
@@ -142,7 +142,7 @@ gcloud services enable artifactregistry.googleapis.com
 gcloud artifacts repositories create ${REPOSITORY_NAME} \
     --repository-format=docker \
     --location=${REGION} \
-    --description="Docker repository for ai-agents-ui"
+    --description="Docker repository for nfrm-cary-ui"
 
 
 # The gcloud auth configure-docker command was already run above.
