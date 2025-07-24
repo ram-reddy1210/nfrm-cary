@@ -95,6 +95,7 @@ class _HomePageState extends State<HomePage> {
   bool _isGeneratingNumerologyPdf = false; // State for PDF generation
   bool _isGeneratingMantraPdf = false; // State for Mantra PDF generation
   bool _isGeneratingAdvisorPdf = false; // State for Advisor PDF generation
+  bool _isSendingAdvisorEmail = false; // State for sending advisor chat email
   bool _isGeneratingHoroscopePdf = false; // State for Horoscope PDF generation
   final Map<String, String> _apiLanguageToTtsCode = {
     'English': 'en-US',
@@ -830,6 +831,74 @@ class _HomePageState extends State<HomePage> {
     if (mounted) setState(() => _isGeneratingAdvisorPdf = false);
   }
 
+  Future<void> _emailAdvisorChat() async {
+    if (_chatMessages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No chat history to email.')),
+      );
+      return;
+    }
+
+    setState(() => _isSendingAdvisorEmail = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Preparing to send email...')),
+    );
+
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userEmail = userProvider.user?.email;
+
+      if (userEmail == null || userEmail.isEmpty) {
+        throw Exception('Could not find user email to send to.');
+      }
+
+      // The chat history is a list of ChatMessage objects. We'll convert it to a list of maps.
+      final chatHistory = _chatMessages.map((m) {
+        return {
+          'role': m.isUserMessage ? 'user' : 'model',
+          'content': m.text,
+        };
+      }).toList();
+
+      // This is a hypothetical endpoint. You will need to implement this on your backend.
+      // It should accept the user's email and the chat history, generate a PDF/HTML email, and send it.
+      final url = Uri.parse('https://nfrm-cary-services-app-503377404374.us-east1.run.app/api/v1/ai-agents/email-chat');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'user_email': userEmail,
+          'chat_history': chatHistory,
+          'session_title': 'FinAdvisor Chat History'
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Chat history has been sent to your email.')),
+        );
+      } else {
+        throw Exception('Failed to send email. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSendingAdvisorEmail = false);
+      }
+    }
+  }
+
   Future<void> _generateHoroscopePdf() async {
     if (_horoscopeChatMessages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1447,10 +1516,12 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                                       onSelected: (String result) {
                                         if (result == 'restart') _restartAdvisorSession();
                                         else if (result == 'download_pdf') _generateAdvisorPdf();
+                                        else if (result == 'send_email') _emailAdvisorChat();
                                       },
                                       itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                                         const PopupMenuItem<String>(value: 'restart', child: Text('Restart Conversation')),
                                         PopupMenuItem<String>(value: 'download_pdf', enabled: !_isGeneratingAdvisorPdf && _chatMessages.isNotEmpty, child: Text(_isGeneratingAdvisorPdf ? 'Generating...' : 'Download PDF')),
+                                        PopupMenuItem<String>(value: 'send_email', enabled: !_isSendingAdvisorEmail && _chatMessages.isNotEmpty, child: Text(_isSendingAdvisorEmail ? 'Sending...' : 'Send to Email')),
                                       ],
                                     ),
                                   ],
