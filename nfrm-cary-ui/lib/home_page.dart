@@ -1917,6 +1917,29 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
           ],
         ),
       ),
+      // --- FinBudget Page ---
+      SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Financial Budget',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Budget tracking features coming soon...',
+                style: TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      ),
       // --- Mantra Page ---
       
     ];
@@ -1994,7 +2017,10 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
             icon: Icon(Icons.looks_one_outlined), // Example icon for Numerology
             label: 'RaiseFund',
           ),
-          
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet), // Icon for FinBudget
+            label: 'FinBudget',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: selectedTabColor, // Changed to specific color
