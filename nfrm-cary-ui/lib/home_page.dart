@@ -1264,7 +1264,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
 
     FocusNode textFieldFocusNode = FocusNode();
     final List<String> imageUrls = [
-      'assets/images/FinAd1.jpeg',
+      'assets/images/financial_advisor.jpg',
     ];
 
 

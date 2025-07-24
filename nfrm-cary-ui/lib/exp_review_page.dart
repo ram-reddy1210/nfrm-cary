@@ -336,7 +336,7 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
             child: SizedBox(
               height: 150.0, // Consistent height with exp_review tab
               child: Image.asset(
-                'assets/images/exp_review.png',
+                'assets/images/budget_planning.jpg',
                 fit: BoxFit.contain,
               ),
             ),
@@ -404,12 +404,17 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
                 } else if (value == 'download') {
                   _downloadPdf();
                 }
+                else if (value == 'taxform') {
+                  _downloadPdf();
+                }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                 const PopupMenuItem<String>(
                     value: 'restart', child: Text('Restart Session')),
                 const PopupMenuItem<String>(
                     value: 'download', child: Text('Download PDF')),
+                const PopupMenuItem<String>(
+                    value: 'taxform', child: Text('Tax Preparation')),
               ],
             ),
           ],

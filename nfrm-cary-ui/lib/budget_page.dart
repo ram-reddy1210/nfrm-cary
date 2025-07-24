@@ -156,6 +156,16 @@ class _BudgetPageState extends State<BudgetPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Center( // Wrap SizedBox with Center to center the image
+            child: SizedBox(
+              height: 150.0, // Consistent height with exp_review tab
+              child: Image.asset(
+                'assets/images/personalized_budget2.jpg',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10), // Spacing similar to exp_review tab
           const Text(
             'Create a Personalized Budget',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
