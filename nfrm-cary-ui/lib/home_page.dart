@@ -1509,7 +1509,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
                                 child: SizedBox(
                                   height: 125.0, // Consistent height with Advisor tab
                                   child: Image.asset(
-                                    'assets/images/budgeting.png',
+                                    'assets/images/FinEdu1.jpeg',
                                     fit: BoxFit.contain,
                                   color: screenBackgroundColor, // Page background color
                                     colorBlendMode: BlendMode.multiply, // Blend mode
@@ -1796,7 +1796,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
             label: 'FinAdvisor',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.beach_access, color: Colors.blue), // Example icon for Horoscope
+            icon: Icon(Icons.nightlight_round), // Example icon for Horoscope
             label: 'Budgeting',
           ),
           const BottomNavigationBarItem(
