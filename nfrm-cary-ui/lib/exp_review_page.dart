@@ -1,9 +1,13 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ai_agents_ui/providers/user_provider.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -167,6 +171,57 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
     }
   }
 
+  void _restartSession() {
+    setState(() {
+      _fileName = null;
+      _fileContent = null;
+      _imageBytes = null;
+      _analysisComplete = false;
+      _chatMessages.clear();
+      _analysisError = null;
+      _followUpController.clear();
+    });
+  }
+
+  Future<void> _downloadPdf() async {
+    final PdfDocument document = PdfDocument();
+    PdfPage page = document.pages.add();
+    final Size pageSize = page.getClientSize();
+    PdfLayoutResult? result;
+
+    final PdfFont font = PdfStandardFont(PdfFontFamily.helvetica, 12);
+
+    for (final message in _chatMessages) {
+      final text = '${message.isUserMessage ? 'You' : 'AI'}: ${message.text}\n\n';
+      final textElement = PdfTextElement(
+        text: text,
+        font: font,
+      );
+
+      result = textElement.draw(
+        page: result?.page ?? page,
+        bounds: Rect.fromLTWH(
+            0, result?.bounds.bottom ?? 0, pageSize.width, pageSize.height),
+      );
+    }
+
+    final List<int> bytes = await document.save();
+    document.dispose();
+
+    await _saveAndLaunchFile(bytes, 'ChatHistory.pdf');
+  }
+
+  Future<void> _saveAndLaunchFile(List<int> bytes, String fileName) async {
+    // For mobile platforms, save the file and open it.
+    // Web implementation would differ.
+    if (!kIsWeb) {
+      final path = (await getApplicationDocumentsDirectory()).path;
+      final file = File('$path/$fileName');
+      await file.writeAsBytes(bytes, flush: true);
+      OpenFile.open('$path/$fileName');
+    }
+  }
+
   Future<void> _pickFile() async {
     setState(() {
       _isLoading = true;
@@ -325,6 +380,31 @@ class _ExpReviewPageState extends State<ExpReviewPage> {
   Widget _buildChatView() {
     return Column(
       children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Review Session',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'restart') {
+                  _restartSession();
+                } else if (value == 'download') {
+                  _downloadPdf();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                    value: 'restart', child: Text('Restart Session')),
+                const PopupMenuItem<String>(
+                    value: 'download', child: Text('Download PDF')),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
         Expanded(
           child: ListView.builder(
             controller: _chatScrollController,
