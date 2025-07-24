@@ -4,7 +4,7 @@ from typing import Optional, List, Dict, Any
 
 # typing.Annotated was imported but not used.
 # Import the llm_services module to avoid naming conflicts and allow proper calling.
-from core.services import llm_services, firestore_service, admin_chat_agent_service, financial_advice_service
+from core.services import llm_services, firestore_service, admin_chat_agent_service, financial_advice_service, budget_planning_service
 from core.services.financial_advice_service import QuestionType
 
 router = APIRouter(prefix="/api")
@@ -98,6 +98,38 @@ async def document_reviewer_chat(details: ReviewDocumentRequest, request: Reques
     )
 
     ai_response_content = financial_advice_service.get_document_review_chat(document_content=details.document_content, user_question=details.prompt)
+    return {"response": ai_response_content}
+
+
+class BudgetChatRequest(BaseModel):
+    history: List[Dict[str, Any]] # e.g. [{"role": "user", "content": "Hi"}, {"role": "assistant", "content": "Hello!"}]
+    prompt: str
+    user_name: str
+    user_email: str
+
+@router.post('/v1/ai-agents/budget_planner_chat', tags=["Financial Advice"])
+async def budget_planner_chat(details: BudgetChatRequest, request: Request):
+    """
+    Endpoint for an interactive chat to create a budget plan.
+    Manages a conversation where the AI asks questions to gather financial details
+    and then generates a budget plan.
+    """
+    user_details = {
+        "client_host": request.client.host if request.client else "unknown",
+        "user_name": details.user_name,
+        "user_email": details.user_email
+    }
+    # The prompt for logging will be just the user's latest message.
+    await firestore_service.log_api_call(
+        api_name="budget_planner_chat",
+        prompt=details.prompt,
+        user_details=user_details,
+        request_data=details.model_dump()
+    )
+
+    ai_response_content = budget_planning_service.get_budget_plan_chat_response(
+        history=details.history, user_message=details.prompt
+    )
     return {"response": ai_response_content}
 
 
