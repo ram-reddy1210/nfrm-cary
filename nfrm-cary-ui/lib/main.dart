@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Scripture Sage',
+        title: 'FinStar',
         theme: ThemeData(
           primarySwatch: Colors.teal, // Example theme
           visualDensity: VisualDensity.adaptivePlatformDensity,
