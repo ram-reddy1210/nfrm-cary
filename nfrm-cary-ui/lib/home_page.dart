@@ -2151,7 +2151,7 @@ List<InlineSpan> _buildTextSpans(String text, TextStyle defaultStyle) {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.nightlight_round), // Example icon for Horoscope
-            label: 'FinEdu',
+            label: 'Budgeting',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.looks_one_outlined), // Example icon for Numerology
