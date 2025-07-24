@@ -42,44 +42,67 @@ async def generate_ai_response(details: GenerateAIResponseRequest, request: Requ
     ai_response_content = llm_services.generate_ai_response(details.prompt)
     return {"response": ai_response_content}
 
-
-
-def get_coaching_advice_chat(user_problem: str, scriptures_context: str) -> str:
+def get_financial_advice_chat(user_question: str) -> str:
     """
-    Gets career coaching advice from the AI in a chat session, based on Hindu scriptures.
+    Gets financial advice from the AI in a chat session.
     Uses the persistent chat session from llm_services.
 
     Args:
-        user_problem: The problem or question from the user for the current turn.
-        scriptures_context: A string containing the list/summary of Hindu scriptures.
+        user_question: The financial question from the user.
 
     Returns:
-        The AI's coaching advice for the current turn, or an error message.
+        The AI's financial advice, or an error message.
     """
-    system_prompt = f"""You are a highly knowledgeable master of all Hindu scriptures and an experienced career coach, engaging in an ongoing chat conversation.
-                    Your primary knowledge base for Hindu scriptures is as follows:
-                    --- SCRIPTURES START ---
-                    {scriptures_context}
-                    --- SCRIPTURES END ---
-                    You are to provide guidance and advice to students (at any level), corporate leaders, and stakeholders. 
-                    Address their real-time problems with brief and insightful answers, drawing wisdom from these scriptures and remembering previous parts of this conversation.
-                    Limit your response for this turn to a maximum of 300 words. 
-                    Be empathetic, wise, and practical in your advice. Do not refer to yourself as an AI or language model. Act as a human coach.
-                    """
+    system_prompt = """You are a comprehensive and expert financial advisor AI. Your goal is to provide clear, practical, and responsible financial guidance. You are equipped to handle a wide range of financial topics.
+
+You must be able to answer questions related to:
+- **Personal Finance:** Budgeting, saving, debt management (credit cards, loans), retirement planning (401k, IRA), and building an emergency fund.
+- **Investing:** Stock market basics, mutual funds, ETFs, bonds, real estate, and risk tolerance assessment. Explain concepts clearly and provide general information, but do NOT give personalized investment advice to buy or sell specific securities.
+- **Small Business:** Guidance on starting a business, creating a business plan, managing cash flow, understanding funding options, and basic accounting principles.
+- **Finding Investors:** Strategies for seeking seed funding, venture capital, angel investors, and preparing a pitch deck.
+
+**Your Persona:**
+- **Knowledgeable & Clear:** Break down complex topics into easy-to-understand language.
+- **Prudent & Responsible:** Always include a disclaimer that you are an AI assistant and that users should consult with a qualified human financial professional for personalized advice before making any financial decisions.
+- **Supportive & Unbiased:** Provide balanced information about different financial strategies and products.
+- **Conversational:** Engage with the user in a helpful and approachable manner. Do not refer to yourself as a language model. Act as a human advisor.
+
+Remember to maintain the context of the conversation if it's an ongoing chat.
+"""
     
-    prompt_payload = f"{system_prompt}\n\nUser's current problem or question: \"{user_problem}\"\n\nYour coaching advice for this turn:"
+    prompt_payload = f"{system_prompt}\n\nUser's question: \"{user_question}\"\n\nYour financial advice:"
     
     try:
         advice_text = llm_services.chat_with_ai(prompt_payload)
         return advice_text
     except Exception as e:
-        print(f"Error in get_coaching_advice_chat: {e}")
-        return f"An error occurred during chat-based advice generation: {e}"
+        print(f"Error in get_financial_advice_chat: {e}")
+        return f"An error occurred during financial advice generation: {e}"
 
 class AdviseChatRequest(BaseModel):
     prompt: str
     user_name: str
     user_email: str
+
+@router.post('/v1/ai-agents/advise_chat')
+async def financial_advisor_chat(details: AdviseChatRequest, request: Request):
+    """Endpoint for chat-based financial advice."""
+    # Log the API call to Firestore
+    user_details = {
+        "client_host": request.client.host if request.client else "unknown",
+        "user_name": details.user_name,
+        "user_email": details.user_email
+    }
+    await firestore_service.log_api_call(
+        api_name="financial_advisor_chat",
+        prompt=details.prompt,
+        user_details=user_details,
+        request_data=details.model_dump()
+    )
+
+    ai_response_content = get_financial_advice_chat(details.prompt)
+    return {"response": ai_response_content}
+
 
 @router.get("/v1/admin/api-logs", response_model=List[Dict[str, Any]], tags=["Admin"])
 async def get_api_logs(

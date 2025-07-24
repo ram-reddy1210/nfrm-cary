@@ -11,7 +11,7 @@ pip install -r requirements.txt
     # Set your variables
     export PROJECT_ID="ai-agent-repo"
     export REGION="us-east1"
-    export SERVICE_NAME="ai-agents-services-app"
+    export SERVICE_NAME="nfrm-cary-services-app"
     export IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
     export RUNTIME_SERVICE_ACCOUNT="ai-agent-runner@${PROJECT_ID}.iam.gserviceaccount.com" 
     export VERTEX_AI_PROJECT_ID="ai-agent-repo" 
